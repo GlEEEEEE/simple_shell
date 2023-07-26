@@ -10,6 +10,7 @@ int main(void)
 char *input;
 char **args;
 int status;
+extern char **environ;
 
 signal(SIGINT, SIG_IGN);
 
@@ -21,7 +22,7 @@ args = parse_input(input);
 
 if (args != NULL)
 {
-status = execute(args);
+status = execute(args, environ);
 free_args(args);
 }
 
