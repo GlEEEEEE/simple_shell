@@ -3,26 +3,28 @@
 /**
 * get_env - Get the value of an environment variable.
 *
-* @name: The name of the environment variable.
-* @env: The environment variables.
+* @name: The name of the environment variable to retrieve.
+* @env: The array of environment variables (char **) to search in.
 *
-* Return: The value of the environment variable or NULL if not found.
+* Return: a pointer or NULL if not found.
 */
-char *get_env(const char *name, char **env)
+char *get_env(char *name, char **env)
 {
-char *value, *var;
-int i;
+int i, len;
+char *env_name, *value;
 
-for (i = 0; env[i] != NULL; i++)
+len = strlen(name);
+for (i = 0; env[i]; i++)
 {
-var = strtok(env[i], "=");
-if (strcmp(var, name) == 0)
+env_name = env[i];
+if (strncmp(env_name, name, len) == 0 && env_name[len] == '=')
 {
-value = strtok(NULL, "=");
+value = env_name + len + 1;
 return (value);
 }
 }
 
 return (NULL);
 }
+
 

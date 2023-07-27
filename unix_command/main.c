@@ -1,37 +1,48 @@
 #include "shell.h"
 
 /**
-* main - Simple Shell Entry Point
+* main - Simple shell main function.
+* @argc: The number of arguments (unused).
+* @argv: The array of command-line arguments (unused).
+* @env: The array of environment variables.
 *
-* Return: Always 0.
+* Return: Always returns 0.
+*
+* __attribute__((unused)): prevents unused var warning.
 */
-int main(void)
+int main(int __attribute__((unused)) argc,
+char __attribute__((unused)) **argv,
+char **env)
 {
-char *input;
+char *line = NULL;
 char **args;
-int status;
-extern char **environ;
+size_t bufsize = 0;
+ssize_t read_chars;
 
-signal(SIGINT, SIG_IGN);
-
+int status
 while (1)
 {
-write(STDOUT_FILENO, "($) ", 4);
-input = read_input();
-args = parse_input(input);
-
-if (args != NULL)
+printf("($) ");
+read_chars = getline(&line, &bufsize, stdin);
+if (read_chars == -1)
 {
-status = execute(args, environ);
-free_args(args);
-}
-
-free(input);
-
-if (status == 2)
+if (isatty(STDIN_FILENO))
+printf("\n");
 break;
 }
 
-return (0);
+args = parse_input(line);
+if (args == NULL)
+{
+perror("Error parsing input");
+continue;
 }
 
+status = execute(args, env);
+
+free_args(args);
+}
+
+free(line);
+return (0);
+}

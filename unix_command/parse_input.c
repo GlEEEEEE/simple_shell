@@ -1,47 +1,44 @@
 #include "shell.h"
 
 /**
-* parse_input - Tokenize the input string into arguments.
-*
-* @input: The input string to be tokenized.
-*
-* Return: An array of pointers to each argument or NULL on failure.
-*/
-char **parse_input(char *input)
+ * parse_input - Parse a given input line into an array of tokens.
+ * @line: The input line to be parsed.
+ *
+ * Return: An array of pointers to token or returns null..
+ */
+char **parse_input(char *line)
 {
-char **args = NULL;
-char *token;
-int bufsize = 64;
+int bufsize = TOKEN_BUFSIZE;
 int position = 0;
+char **tokens = malloc(bufsize * sizeof(char *));
+char *token;
 
-args = malloc(bufsize * sizeof(char *));
-if (args == NULL)
+if (!tokens)
 {
-perror("parse_input: malloc");
+perror("Allocation error");
 exit(EXIT_FAILURE);
 }
 
-token = strtok(input, " \t\n");
+token = strtok(line, " \t\r\n\a");
 while (token != NULL)
 {
-args[position] = token;
+tokens[position] = token;
 position++;
 
 if (position >= bufsize)
 {
-bufsize += 64;
-args = realloc(args, bufsize *sizeof(char *));
-if (args == NULL)
+bufsize += TOKEN_BUFSIZE;
+tokens = realloc(tokens, bufsize *sizeof(char *));
+if (!tokens)
 {
-perror("parse_input: realloc");
+perror("Allocation error");
 exit(EXIT_FAILURE);
 }
 }
 
-token = strtok(NULL, " \t\n");
+token = strtok(NULL, " \t\r\n\a");
 }
-
-args[position] = NULL;
-return (args);
+tokens[position] = NULL;
+return (tokens);
 }
 

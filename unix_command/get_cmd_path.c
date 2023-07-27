@@ -1,56 +1,15 @@
 #include "shell.h"
 
 /**
-* get_cmd_path - get the full path of the command.
+* get_cmd_path - Get the full path of a command.
 *
-* @cmd: The cmd to find the full path of.
-* @env: environment variables.
+* create_cmd_path: full command path of token dir.
 *
-* Return: full path of the cmd or NULL if not found.
-*/
-char *get_cmd_path(char *cmd, char **env)
-{
-char *path, *token, *tmp;
-char *cmd_path = NULL;
-struct stat st;
-int found = 0;
-
-path = get_env("PATH", env);
-
-if (path != NULL)
-{
-tmp = strdup(path);
-token = strtok(tmp, ":");
-while (token != NULL)
-{
-cmd_path = create_cmd_path(token, cmd);
-if (cmd_path != NULL)
-{
-if (stat(cmd_path, &st) == 0)
-{
-found = 1;
-break;
-}
-free(cmd_path);
-}
-token = strtok(NULL, ":");
-}
-free(tmp);
-free(path);
-}
-
-if (found == 0)
-return (NULL);
-
-return (cmd_path);
-}
-
-/**
-* create_cmd_path - Create a full command path
-* @dir: The directory containing the command
-* @cmd: The command to concatenate with the directory
+* @cmd: The command name to search for.
+* @dir: The array of environment variables.
 *
-* Return: The full command path, or NULL on failure
+*
+* Return: Pointer to dyn alloc string or Null
 */
 char *create_cmd_path(char *dir, char *cmd)
 {
@@ -74,3 +33,38 @@ strcat(cmd_path, cmd);
 
 return (cmd_path);
 }
+
+char *get_cmd_path(char *cmd, char **env)
+{
+char *path, *token, *cmd_path;
+char *token_dir;
+char *delim = ":";
+int access_status;
+
+path = get_env("PATH", env);
+if (!path)
+return (NULL);
+
+token = strtok(path, delim);
+while (token != NULL)
+{
+token_dir = strdup(token);
+if (!token_dir)
+return (NULL);
+
+cmd_path = create_cmd_path(token_dir, cmd);
+free(token_dir);
+if (!cmd_path)
+return (NULL);
+
+access_status = access(cmd_path, X_OK);
+if (access_status == 0)
+return (cmd_path);
+
+free(cmd_path);
+token = strtok(NULL, delim);
+}
+
+return (NULL);
+}
+

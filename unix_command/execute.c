@@ -1,52 +1,48 @@
 #include "shell.h"
 
 /**
-* execute - Execute a command using execve.
+* execute - Execute a command with arguments.
+* @args: Array of strings representing arguments.
+* @env: array of strings representing environment variables.
 *
-* @args: The array of arguments.
-* @env: environment variables.
-*
-* Return: On success, returns 0. On failure, returns 1.
+* Return: On success, 1. On failure, returns 0.
 */
 int execute(char **args, char **env)
 {
+char *cmd_path;
 pid_t pid;
 int status;
-char *cmd_path;
-
 
 cmd_path = get_cmd_path(args[0], env);
-if (cmd_path == NULL)
+if (!cmd_path)
 {
-write(STDERR_FILENO, args[0], strlen(args[0]));
-write(STDERR_FILENO, ": not found\n", 12);
-return (1);
+perror(args[0]);
+return (0);
 }
 
 pid = fork();
-if (pid == -1)
-{
-perror("execute: fork");
-free(cmd_path);
-return (1);
-}
-
 if (pid == 0)
 {
-
-if (execve(cmd_path, args, NULL) == -1)
+if (execve(cmd_path, args, env) == -1)
 {
-perror("execute: execve");
-free(cmd_path);
+perror(args[0]);
+}
 exit(EXIT_FAILURE);
 }
+else if (pid < 0)
+{
+perror("Error");
 }
 else
 {
-wait(&status);
+do
+
+{
+waitpid(pid, &status, WUNTRACED);
+} while (!WIFEXITED(status) && !WIFSIGNALED(status));
 }
 
 free(cmd_path);
-return (0);
+return (1);
 }
 
